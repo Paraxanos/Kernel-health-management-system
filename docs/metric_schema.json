@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KernelHealthMetrics",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of metric collection"
+    },
+    "cpu_psi": {
+      "type": "object",
+      "properties": {
+        "some": { "type": "number", "minimum": 0 },
+        "full": { "type": "number", "minimum": 0 }
+      },
+      "required": ["some", "full"]
+    },
+    "context_switch_rate": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Context switches per second"
+    },
+    "blocked_processes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of processes in uninterruptible sleep (D-state)"
+    }
+  },
+  "required": ["timestamp", "cpu_psi", "context_switch_rate", "blocked_processes"]
+}
