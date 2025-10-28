@@ -1,10 +1,16 @@
 // khms_agent.c - Day 3: Full metric collection + JSON output
+#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 
 // Helper: Format timestamp as ISO 8601 UTC
 void get_iso8601_timestamp(char *buf, size_t len) {
