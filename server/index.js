@@ -1,32 +1,28 @@
 import express from "express";
-import { exec } from "child_process";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// Define __dirname manually for ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import cors from "cors";
 
 const app = express();
-const PORT = 5000;
+const PORT = 3000;
 
+app.use(cors());
+app.use(express.json());
+
+let latestMetric = null;
+
+// POST endpoint (called by khms_agent)
+app.post("/api/health", (req, res) => {
+  latestMetric = req.body;
+  console.log("✅ New metric received:", latestMetric);
+  res.json({ status: "ok" });
+});
+
+// GET endpoint (used by frontend)
 app.get("/api/health/latest", (req, res) => {
-  exec("./khms_agent", { cwd: __dirname }, (error, stdout, stderr) => {
-    if (error) {
-      console.error("Error executing khms_agent:", stderr || error.message);
-      return res.status(500).json({ error: "Failed to fetch kernel metrics" });
-    }
-
-    try {
-      const data = JSON.parse(stdout);
-      res.json(data);
-    } catch (err) {
-      console.error("Invalid JSON output from khms_agent:", stdout);
-      res.status(500).json({ error: "Invalid JSON from khms_agent" });
-    }
-  });
+  if (!latestMetric) return res.status(404).json({ error: "No metrics yet" });
+  res.json(latestMetric);
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
 });
+

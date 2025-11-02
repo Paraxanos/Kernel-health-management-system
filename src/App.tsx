@@ -5,7 +5,6 @@ import MetricCard from "./components/MetricCard";
 import MetricChart from "./components/MetricChart";
 import CpuGauge from "./components/CpuGauge";
 
-
 function App() {
   const [metrics, setMetrics] = useState<KernelMetrics | null>(null);
 
@@ -16,7 +15,7 @@ function App() {
         const data = await fetchHealthMetrics();
         setMetrics(data);
       } catch (err) {
-        console.error("Error fetching metrics:", err);  
+        console.error("Error fetching metrics:", err);
       }
     };
     getData();
@@ -24,7 +23,6 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Loading state
   if (!metrics) {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300 text-xl">
@@ -41,11 +39,8 @@ function App() {
       ? "warning"
       : "normal";
 
-  const csStatus =
-    metrics.context_switch_rate > 4000 ? "warning" : "normal";
-
-  const blockedStatus =
-    metrics.blocked_processes > 0 ? "critical" : "normal";
+  const csStatus = metrics.context_switch_rate > 4000 ? "warning" : "normal";
+  const blockedStatus = metrics.blocked_processes > 0 ? "critical" : "normal";
 
   const overallStatus =
     cpuStatus === "critical" || blockedStatus === "critical"
@@ -68,7 +63,6 @@ function App() {
       ? "Warning"
       : "Healthy";
 
-  // --- Animated System Banner ---
   const bannerGradient =
     overallStatus === "critical"
       ? "from-red-500/30 via-red-600/20 to-red-900/10"
@@ -79,7 +73,6 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white p-6">
       <div className="max-w-6xl mx-auto">
-
         {/* Header */}
         <header className="flex flex-col md:flex-row items-center justify-between mb-10 border-b border-gray-700 pb-4">
           <div className="flex items-center gap-3">
@@ -94,7 +87,7 @@ function App() {
                     : "#22c55e",
               }}
               transition={{ duration: 0.3 }}
-            ></motion.div>
+            />
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
               Kernel Health Management System
             </h1>
@@ -111,12 +104,12 @@ function App() {
               animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }}
               transition={{ repeat: Infinity, duration: 2 }}
               className="w-2.5 h-2.5 rounded-full bg-black opacity-40"
-            ></motion.span>
+            />
             {statusText}
           </motion.div>
         </header>
 
-        {/* Dynamic glowing system banner */}
+        {/* Banner */}
         <motion.div
           className={`h-3 rounded-full bg-gradient-to-r ${bannerGradient} mb-8`}
           initial={{ opacity: 0 }}
@@ -132,10 +125,10 @@ function App() {
           </span>
         </p>
 
-        {/* Metric cards */}
+        {/* Metric Cards */}
         <motion.div
           layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
         >
           <MetricCard
             title="CPU PSI Stall"
@@ -144,7 +137,6 @@ function App() {
             status={cpuStatus}
             description="CPU pressure (some/full)"
           />
-
           <MetricCard
             title="Context Switch Rate"
             value={metrics.context_switch_rate.toLocaleString()}
@@ -152,7 +144,6 @@ function App() {
             status={csStatus}
             description="Context switches per second"
           />
-
           <MetricCard
             title="Blocked Processes"
             value={metrics.blocked_processes}
@@ -161,17 +152,17 @@ function App() {
           />
         </motion.div>
 
-        {/* Live CPU PSI chart */}
-        <MetricChart
-          cpuSome={metrics.cpu_psi.some}
-          cpuFull={metrics.cpu_psi.full}
-        />
+        {/* Large Chart */}
+        <div className="mb-10">
+          <MetricChart metrics={metrics} />
+        </div>
 
-        <CpuGauge
-  cpuSome={metrics.cpu_psi.some}
-  cpuFull={metrics.cpu_psi.full}
-/>
-
+        {/* Gauge Below */}
+        <div className="flex justify-center mb-12">
+          <div className="w-full max-w-md">
+            <CpuGauge metrics={metrics} />
+          </div>
+        </div>
 
         {/* Footer */}
         <footer className="text-center text-gray-500 text-sm mt-10 border-t border-gray-700 pt-6">
