@@ -1,13 +1,15 @@
-import axios from "axios";
-
 export interface KernelMetrics {
-  timestamp: string;
-  cpu_psi: { some: number; full: number };
-  context_switch_rate: number;
-  blocked_processes: number;
+  cpu_psi_stall_percent: number;
+  context_switches_per_sec: number;
+  blocked_processes_d_state: number;
 }
-
-export async function fetchHealthMetrics(): Promise<KernelMetrics> {
- const response = await axios.get<KernelMetrics>("http://127.0.0.1:3000/api/health/latest");
-  return response.data;
+export async function fetchKernelMetrics() {
+  try {
+    const res = await fetch("/api/v1/metrics"); // ✅ Use proxy instead of hardcoding IP
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Fetch error:", err);
+    return null;
+  }
 }

@@ -1,55 +1,34 @@
 import React from "react";
 
 interface CpuGaugeProps {
-  metrics: {
-    cpu_psi: { some: number; full: number };
-  };
+  value: number;
 }
 
-const CpuGauge: React.FC<CpuGaugeProps> = ({ metrics }) => {
-  const cpuSome = metrics.cpu_psi.some;
-  const cpuFull = metrics.cpu_psi.full;
-
-  const percentage = Math.min(100, (cpuSome + cpuFull) * 5); // scaling visually
-  const strokeColor =
-    percentage > 80 ? "#ef4444" : percentage > 50 ? "#facc15" : "#22c55e";
-
+const CpuGauge: React.FC<CpuGaugeProps> = ({ value }) => {
+  const percent = Math.min(100, value * 10); // convert 0–10 to %
   return (
-    <div className="bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-700 flex flex-col items-center justify-center">
-      <h2 className="text-xl font-semibold text-gray-200 mb-6">CPU PSI Gauge</h2>
-      <svg viewBox="0 0 36 36" className="w-40 h-40">
+    <div className="relative w-48 h-48 flex items-center justify-center bg-gray-900 rounded-full shadow-md">
+      <svg className="absolute inset-0" viewBox="0 0 36 36">
         <path
           className="text-gray-700"
-          stroke="currentColor"
-          strokeWidth="3"
+          strokeWidth="3.8"
           fill="none"
           d="M18 2.0845
-             a 15.9155 15.9155 0 0 1 0 31.831
-             a 15.9155 15.9155 0 0 1 0 -31.831"
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
         />
         <path
-          stroke={strokeColor}
-          strokeWidth="3"
-          strokeDasharray={`${percentage}, 100`}
-          strokeLinecap="round"
+          className="text-green-400"
+          strokeWidth="3.8"
+          strokeDasharray={`${percent}, 100`}
           fill="none"
+          strokeLinecap="round"
           d="M18 2.0845
-             a 15.9155 15.9155 0 0 1 0 31.831
-             a 15.9155 15.9155 0 0 1 0 -31.831"
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
         />
-        <text
-          x="18"
-          y="20.35"
-          className="text-lg font-bold"
-          textAnchor="middle"
-          fill="white"
-        >
-          {percentage.toFixed(0)}%
-        </text>
       </svg>
-      <p className="text-gray-400 mt-3">
-        PSI (some/full): {cpuSome.toFixed(2)} / {cpuFull.toFixed(2)}
-      </p>
+      <span className="text-xl font-bold text-green-400">{percent.toFixed(1)}%</span>
     </div>
   );
 };
