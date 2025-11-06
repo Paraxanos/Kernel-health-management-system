@@ -182,7 +182,7 @@ export default function App() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
       >
-        © {new Date().getFullYear()} Kernel Health Monitor • Built with ❤️ by Kamran
+        © {new Date().getFullYear()} Kernel Health Monitor • Built with ❤️ by Kamran and Pranjal 
       </motion.footer>
     </div>
   );
