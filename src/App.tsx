@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import MetricCard from "./components/MetricCard";
 import MetricChart from "./components/MetricChart";
 import CpuGauge from "./components/CpuGauge";
+import SystemOverview from "./components/SystemOverview";
+import ActivityLog from "./components/ActivityLog";
 import { fetchKernelMetrics } from "./api/health";
 import { toggleStress } from "./api/stress";
 import { motion } from "framer-motion";
@@ -17,9 +19,10 @@ export default function App() {
   const [history, setHistory] = useState<any[]>([]);
   const [stress, setStress] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [cores, setCores] = useState(2); // default 2 cores
+  const [cores, setCores] = useState(2);
+  const [logs, setLogs] = useState<{ time: string; message: string }[]>([]);
 
-  // Fetch metrics every 2s
+  // Fetch metrics every 2 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
       const data = await fetchKernelMetrics();
@@ -34,16 +37,25 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Stress toggle
   const handleStressToggle = async () => {
     setLoading(true);
     const newStressState = !stress;
     setStress(newStressState);
 
-    const response = await toggleStress(newStressState, cores, true);
-    if (response) {
-      console.log("Stress API:", response.message);
-    } else {
-      console.error("Failed to toggle stress");
+    setLogs((prev) => [
+      {
+        time: new Date().toLocaleTimeString(),
+        message: `${newStressState ? "Started" : "Stopped"} stress (${cores} cores)`,
+      },
+      ...prev.slice(0, 9),
+    ]);
+
+    try {
+      const response = await toggleStress(newStressState, cores, true);
+      if (response) console.log("Stress API:", response.message);
+    } catch (err) {
+      console.error("Failed to toggle stress:", err);
     }
     setLoading(false);
   };
@@ -57,7 +69,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 space-y-8">
+    <div className="min-h-screen text-white p-6 space-y-8 bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#000000] relative overflow-hidden">
+      {/* Animated Background Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,#1e3a8a_0%,transparent_60%),radial-gradient(circle_at_70%_70%,#7e22ce_0%,transparent_60%)] opacity-25 blur-3xl -z-10"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] opacity-5 -z-10"></div>
+
       {/* Header */}
       <motion.div
         className="flex justify-between items-center"
@@ -65,38 +81,39 @@ export default function App() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h1 className="text-4xl font-bold tracking-wide">🐧 Kernel Health Dashboard</h1>
+        <h1 className="text-4xl font-bold tracking-wide">
+          🐧 Kernel Health Dashboard
+        </h1>
 
         <div className="flex items-center gap-4">
-          {/* Core selection */}
+          {/* Core Selector */}
           <input
             type="number"
             min="1"
             max={navigator.hardwareConcurrency || 8}
             value={cores}
             onChange={(e) => setCores(Number(e.target.value))}
-            className="w-20 px-2 py-1 rounded-md text-black text-center"
+            className="w-20 px-2 py-1 rounded-md text-black text-center border border-gray-600"
           />
           <span className="text-gray-300 text-sm">Cores</span>
 
-          {/* Stress toggle */}
+          {/* Stress Button */}
           <button
             onClick={handleStressToggle}
             disabled={loading}
-            className={`px-5 py-2.5 rounded-lg font-semibold shadow-lg transition-transform transform hover:scale-105 ${
+            className={`px-5 py-2.5 rounded-lg font-semibold shadow-lg transition-all transform hover:scale-105 hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] ${
               stress
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-green-500 hover:bg-green-600"
+                ? "bg-gradient-to-r from-red-600 to-pink-600"
+                : "bg-gradient-to-r from-green-500 to-emerald-600"
             } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {loading
-              ? "Applying..."
-              : stress
-              ? "Stop Stress"
-              : "Start Stress"}
+            {loading ? "Applying..." : stress ? "Stop Stress" : "Start Stress"}
           </button>
         </div>
       </motion.div>
+
+      {/* System Overview */}
+      <SystemOverview metrics={metrics} stress={stress} cores={cores} />
 
       {/* Metric Cards */}
       <motion.div
@@ -109,7 +126,7 @@ export default function App() {
           title="CPU PSI Stall"
           value={metrics.cpu_psi_stall_percent.toFixed(2)}
           unit="%"
-          color="text-green-400"
+          color="text-violet-400"
         />
         <MetricCard
           title="Context Switch Rate"
@@ -138,7 +155,7 @@ export default function App() {
         <MetricChart
           data={history}
           dataKey="cpu_psi_stall_percent"
-          color="#22c55e"
+          color="#a855f7"
           title="CPU PSI Stall Over Time"
         />
         <MetricChart
@@ -150,10 +167,13 @@ export default function App() {
         <MetricChart
           data={history}
           dataKey="blocked_processes_d_state"
-          color="#eab308"
+          color="#facc15"
           title="Blocked Processes Over Time"
         />
       </motion.div>
+
+      {/* Logs */}
+      <ActivityLog logs={logs} />
 
       {/* Footer */}
       <motion.footer

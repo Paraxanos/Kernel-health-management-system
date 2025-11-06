@@ -3,6 +3,7 @@ export interface KernelMetrics {
   context_switches_per_sec: number;
   blocked_processes_d_state: number;
 }
+
 export async function fetchKernelMetrics() {
   try {
     const res = await fetch("/api/v1/metrics"); // ✅ Use proxy instead of hardcoding IP
